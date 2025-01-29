@@ -4,11 +4,6 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-3xl">
       <div className="flex justify-center items-center gap-4">
-        <img
-          src="/cmput412-akhadeli/images/profile.jpeg"
-          alt="Abdullah Khadeli"
-          className="rounded-full w-24 h-24 object-cover"
-        />
         <div className="flex flex-col gap-0.5">
           <h1 className="text-4xl font-bold">CMPUT 412/503 - Exercise 1</h1>
           <p className="text-sm text-gray-500">
