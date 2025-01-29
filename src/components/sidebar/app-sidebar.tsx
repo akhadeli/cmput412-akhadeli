@@ -2,17 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { GalleryVerticalEnd, Search } from "lucide-react";
+import { GalleryVerticalEnd } from "lucide-react";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
@@ -42,8 +36,6 @@ const navItems = [
 ];
 
 export function AppSidebar() {
-  const pathname = usePathname();
-
   return (
     <Sidebar>
       <SidebarHeader>
