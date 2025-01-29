@@ -35,6 +35,24 @@ export default function Home() {
       <p className="mt-4">
         The report is a PDF file that contains the report for Exercise 1.
       </p>
+      <Link
+        href="https://drive.google.com/drive/u/3/folders/1Oz8lvX-2B9IYTAy5Q_tjM3KNolGS6D4Q"
+        className="text-blue-500 hover:text-blue-700"
+      >
+        Straight driving for 2 Meters demo
+      </Link>
+      <Link
+        href="https://drive.google.com/file/d/1--Rvtb2ep4wPFSrrh2DS6eNG-1Z1K-zj/view?usp=sharing"
+        className="text-blue-500 hover:text-blue-700"
+      >
+        Lane following demo
+      </Link>
+      <Link
+        href="https://drive.google.com/drive/folders/1Oz8lvX-2B9IYTAy5Q_tjM3KNolGS6D4Q?usp=sharing"
+        className="text-blue-500 hover:text-blue-700"
+      >
+        All Media (Images and Videos)
+      </Link>
     </main>
   );
 }
