@@ -30,7 +30,7 @@ const navItems = [
     title: "Exercises",
     items: [
       { title: "Exercise 1", url: "/exercises/ex1" },
-      // { title: "Exercise 2", url: "/exercises/ex2" },
+      { title: "Exercise 2", url: "/exercises/ex2" },
     ],
   },
 ];
