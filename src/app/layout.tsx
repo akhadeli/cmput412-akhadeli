@@ -6,8 +6,8 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Minimal Docs Site",
-  description: "A gorgeous minimal documentation site using Next.js App Router",
+  title: "CMPUT 412/503 - Abdullah Khadeli",
+  description: "A documentation site for CMPUT 412/503 - Abdullah Khadeli",
 };
 
 export default function RootLayout({
