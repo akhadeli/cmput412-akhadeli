@@ -4,13 +4,6 @@ import { cn } from "@/lib/utils";
 export default function Home() {
   return (
     <main className="mx-auto max-w-3xl">
-      <div className="flex justify-center items-center gap-4">
-        <div className="flex flex-col gap-0.5">
-          <h1 className="text-4xl font-bold">CMPUT 412/503 - Exercise 2</h1>
-        </div>
-      </div>
-      <hr className="my-4 mt-8" />
-      <h2 className="mb-4 mt-8 text-2xl font-semibold">Report</h2>
       <div
         className={cn(
           "prose prose-headings:mt-8",
@@ -30,7 +23,10 @@ export default function Home() {
           "prose-li:text-gray-800",
           "dark:prose-li:text-gray-100",
           "prose-strong:text-gray-800 prose-strong:font-bold",
-          "dark:prose-strong:text-gray-100"
+          "dark:prose-strong:text-gray-100",
+          "prose-img:w-full prose-img:rounded-lg prose-img:border prose-img:border-border prose-img:dark:border-border",
+          "prose-video:w-full prose-video:rounded-lg prose-video:border prose-video:border-border prose-video:dark:border-border",
+          "prose-iframe:w-full prose-iframe:rounded-lg prose-iframe:border prose-iframe:border-border prose-iframe:dark:border-border"
         )}
       >
         <Report />

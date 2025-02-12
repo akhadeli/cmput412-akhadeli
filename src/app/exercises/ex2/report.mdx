@@ -24,15 +24,17 @@ The typical workflow for setting up node communication involves:
 4. Launching the respective nodes
 5. Additionally collect data using rosbag for playback and analysis
 
-- Add a screenshot of your first publisher and subscriber nodes in action.
+![Publisher and Subscriber](/cmput412-akhadeli/images/ex2/pub-sub-simple.png)
 
-- Include a screenshot of the annotated image using rqt_image_view.
+![Annotated Image](/cmput412-akhadeli/images/ex2/annotated-image.png)
 
 ### Part II: Odometry using wheel encoders
 
 #### Straight line task
 
 - Why is there a difference between the actual and desired location?
+
+<video src="/cmput412-akhadeli/images/ex2/straight.mp4" controls></video>
 
 Most of the time the bot stops near exact distance (1.25m) but sometimes it goes way over it.
 We suspect one reason for this is because of lag.
@@ -59,10 +61,14 @@ Increasing the speed leads to more accurate results in our case.
 This is likely because the mat used for the robot has been tampered a lot over 2 weeks as other students use it for their testing and a lot of accidental stepping on mat has happened.
 Decreasing the speed leads to less accurate results like for the same reason expressed previously.
 
+![Straight Plot](/cmput412-akhadeli/images/ex2/straight_plot.png)
+
 #### Rotation task
 
 - Did you observe any deviations in the rotation?
 - If deviations exist, what could be the cause?
+
+<video src="/cmput412-akhadeli/images/ex2/rotation.mp4" controls></video>
 
 One of the most pressing problems we faced in the rotation task is overshooting.
 After spending a long time tweaking our implementation, we achieved near exact 90 degree rotation in most of our runs.
@@ -81,17 +87,28 @@ We, however, quickly realized this after looking at the sample exercises (E.g. c
 We defined an on_shutdown() callback to our node that publishes a command to the wheels of the robot that set the velocity of each wheel to 0.
 After we defined this in our DTROS subclasses, our nodes shutdown properly.
 
-- Plot of the rosbag results
+![Rotation Plot](/cmput412-akhadeli/images/ex2/rotation_plot.png)
 
 ### Part III: Playing with Duckiebots
 
 - Clearly document the mapping of states to LED colors in your report
 
+<video
+  src="/cmput412-akhadeli/images/ex2/d-path-compressed.mp4"
+  controls
+></video>
+
 **Red** means the duckiebot is in a **stopped state** and **Green** means that the duckiebot is **moving**.
 When the node shuts down, we turn the lights off.
 
 - Include plot of the rosbag results
+
+![D Path Plot](/cmput412-akhadeli/images/ex2/D_plot.png)
+
 - Print the total execution time for the task and add it in the report.
+
+![Total Execution Time](/cmput412-akhadeli/images/ex2/exec-time.png)
+
 - Is your duckiebot able to track what you planned according to your plan? If not,
   then why?
 
