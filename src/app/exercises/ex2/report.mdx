@@ -10,9 +10,9 @@
 
 - **Service**: Services provide an alternative communication mechanism between nodes. Unlike the asynchronous nature of topics, services are for operations requiring a request-response interaction, like querying sensor states.
 
-- **Message**: Typed data structures for node communication. They support primitive types and nested structures, enabling both simple and complex data exchange.
+- **Message**: Messages provide typed data schemas for node communication. They provide support for different types of data exchanged between nodes.
 
-- **Bag**: A format for recording and replaying ROS message data. Essential for storing sensor data and debugging by allowing experiment playback and analysis.
+- **Bag**: A method to record messages sent through a topic. Since timestamps are attached to each message, it allows for the playback of the messages in the order they were sent, and thus analysis of the time-series data.
 
 #### Communication Workflow
 
