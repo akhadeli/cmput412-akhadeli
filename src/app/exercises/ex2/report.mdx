@@ -37,7 +37,11 @@ The typical workflow for setting up node communication involves:
 Most of the time the bot stops near exact distance (1.25m) but sometimes it goes way over it.
 We suspect one reason for this is because of lag.
 A discrepancy of the connection between the messages that the publisher is sending to the robot.
-The robot gets the shutdown signal late which includes WheelsCMDStamped(vel_left=0, vel_right=0).
+The robot gets the shutdown signal late which includes:
+
+```
+WheelsCMDStamped(vel_left=0, vel_right=0)
+```
 
 Another reason is the rate of messages publishing.
 We observed that when the rate of message publishing is too low (E.g. 3 messages per second) it is more likely to overshoot.
@@ -71,11 +75,11 @@ As well, we increased the number of published messages per second. This makes th
   even if you shut down the program? If this is the case, think about how to resolve this
   issue
 
-Our programs did not finish properly in the beginning. 
+Our programs did not finish properly in the beginning.
 When we shutdown our program for the first time, the robot's wheels kept spinning even though the run function already finished.
-We, however, quickly realized this after looking at the sample exercises (E.g. camera reader). 
+We, however, quickly realized this after looking at the sample exercises (E.g. camera reader).
 We defined an on_shutdown() callback to our node that publishes a command to the wheels of the robot that set the velocity of each wheel to 0.
-After we defined this in our DTROS subclasses, our nodes shutdown properly. 
+After we defined this in our DTROS subclasses, our nodes shutdown properly.
 
 - Plot of the rosbag results
 
