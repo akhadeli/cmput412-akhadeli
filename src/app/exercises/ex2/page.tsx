@@ -28,7 +28,9 @@ export default function Home() {
           "prose-ul:text-gray-800",
           "dark:prose-ul:text-gray-100",
           "prose-li:text-gray-800",
-          "dark:prose-li:text-gray-100"
+          "dark:prose-li:text-gray-100",
+          "prose-strong:text-gray-800 prose-strong:font-bold",
+          "dark:prose-strong:text-gray-100"
         )}
       >
         <Report />
