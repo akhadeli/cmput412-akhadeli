@@ -28,7 +28,7 @@ The following images show my-publisher.py publishing messages and my-subscriber.
 
 ![Publisher and Subscriber](/cmput412-akhadeli/images/ex2/pub-sub-simple.png)
 
-Afterwards, we subscribed to the topic containing the output of the camera. 
+Afterwards, we subscribed to the topic containing the output of the camera.
 We then transformed the read image into grayscale and annotated it using OpenCV and published the compressed output on a custom topic.
 We opened rqt_image_view and used the outputs from the custom topic showing this screenshot.
 
@@ -87,10 +87,6 @@ It mainly came from the lag and number of published messages per second.
 There was nothing we can do about the former. For the latter, we set a tolerance threshold such that when the read that total change in angle of the robot frame is within that lower threshold we stop the robot.
 As well, we increased the number of published messages per second. This makes the interval of error really small so it only overshoots a little if we ever do and there is no lag.
 
-- Does your program exit properly after you finish all the above tasks? Is it still running
-  even if you shut down the program? If this is the case, think about how to resolve this
-  issue
-
 Our programs did not finish properly in the beginning.
 When we shutdown our program for the first time, the robot's wheels kept spinning even though the run function already finished.
 We, however, quickly realized this after looking at the sample exercises (E.g. camera reader).
@@ -100,28 +96,29 @@ After we defined this in our DTROS subclasses, our nodes shutdown properly.
 ![Rotation Plot](/cmput412-akhadeli/images/ex2/rotation_plot.png)
 
 ### Part III: Playing with Duckiebots
+
 After building our main node and service nodes and hours of testing and tweaking their parameters, we achieved our best run on running the Duckiebot to traced a D path.
 
-<video
-  src="/cmput412-akhadeli/images/ex2/d-path-compressed.mp4"
-  controls
-></video>
+<video src="/cmput412-akhadeli/images/ex2/d-path-2.mp4" controls></video>
 
-The main node is responsible for the logic of controlling the wheels of the duckiebot. 
+The main node is responsible for the logic of controlling the wheels of the duckiebot.
 It also publishes a msg to /csc22909/state. The service node subscribes to this topic.
 There are three states Stopping, Moving, and Exiting. The service node handles the lights to output **Red** meaning the duckiebot is in a **stopped state** and **Green** means that the duckiebot is **moving**.
 When the node shuts down, we turn the lights off.
 
-- Include plot of the rosbag results
-
 ![D Path Plot](/cmput412-akhadeli/images/ex2/D_plot.png)
-
-- Print the total execution time for the task and add it in the report.
 
 ![Total Execution Time](/cmput412-akhadeli/images/ex2/exec-time.png)
 
-- Is your duckiebot able to track what you planned according to your plan? If not,
-  then why?
+Accumulation of small errors leading to big errors in the long run (E.g. minor deviation from the first straight line task in the D path tracing leads to the robot not reaching the end position)
+It is also very hard to get accurate movement from the robot because of the reasons stated in the previous parts.
 
-  Accumulation of small errors leading to big errors in the long run (E.g. minor deviation from the first straight line task in the D path tracing leads to the robot not reaching the end position)
-  It is also very hard to get accurate movement from the robot because of the reasons stated in the previous parts.
+### Reflection
+
+Overall, we learned a lot about ROS and Duckiebots, and especially about tweaking the parameters of the robot to get the best performance.
+
+### References
+
+- [ROS Documentation](https://wiki.ros.org/ROS/Tutorials)
+- [Duckiebot Documentation](https://docs.duckietown.com/daffy/devmanual-software/beginner)
+- [Medium Article](https://medium.com/@nahmed3536/wheel-odometry-model-for-differential-drive-robotics-91b85a012299)
