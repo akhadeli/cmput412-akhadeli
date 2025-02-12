@@ -58,6 +58,13 @@ Decreasing the speed leads to less accurate results like for the same reason exp
 - Did you observe any deviations in the rotation?
 - If deviations exist, what could be the cause?
 
+One of the most pressing problems we faced in the rotation task is overshooting.
+After spending a long time tweaking our implementation, we achieved near exact 90 degree rotation in most of our runs.
+However, sometimes it overshoots and, rarely, its spins around more than 360 degrees.
+It mainly came from the lag and number of published messages per second. 
+There was nothing we can do about the former. For the latter, we set a tolerance threshold such that when the read that total change in angle of the robot frame is within that lower threshold we stop the robot.
+As well, we increased the number of published messages per second. This makes the interval of error really small so it only overshoots a little if we ever do and there is no lag.
+
 - Does your program exit properly after you nish all the above tasks? Is it still running
   even if you shut down the program? If this is the case, think about how to resolve this
   issue
@@ -67,8 +74,14 @@ Decreasing the speed leads to less accurate results like for the same reason exp
 ### Part III: Playing with Duckiebots
 
 - Clearly document the mapping of states to LED colors in your report
+
+Red means the duckiebot is in a stopped state and Green means that the duckiebot is moving. 
+When the node shuts down, we turn the lights off.
+
 - Include plot of the rosbag results
 - Print the total execution time for the task and add it in the report.
 - Is your duckiebot able to track what you planned according to your plan? If not,
   then why?
 
+  Accumulation of small errors leading to big errors in the long run (E.g. minor deviation from the first straight line task in the D path tracing leads to the robot not reaching the end position)
+  It is also very hard to get accurate movement from the robot because of the reasons stated in the previous parts.
