@@ -23,8 +23,24 @@
 #### Straight line task
 
 - Why is there a difference between the actual and desired location?
+
+Most of the time the bot stops near exact distance (1.25m) but sometimes it goes way over it. 
+We suspect one reason for this is because of lag. 
+A discrepancy of the connection between the messages that the publisher is sending to the robot. 
+The robot gets the shutdown signal late which includes WheelsCMDStamped(vel_left=0, vel_right=0).
+
+Another reason is the rate of messages publishing. 
+We observed that when the rate of message publishing is too low (E.g. 3 messages per second) it is more likely to overshoot. 
+This is because the interval of message sending is large which allows for larger error.
+
 - What speed did you use?
+
+
 - What happens when you increase or decrease the speed?
+
+Increasing the speed leads to more accurate results in our case. 
+This is likely because the mat used for the robot has been tampered a lot over 2 weeks as other students use it for their testing and a lot of accidental stepping on mat has happened.
+Decreasing the speed leads to less accurate results like for the same reason expressed previously.
 
 #### Rotation task
 
@@ -44,3 +60,4 @@
 - Print the total execution time for the task and add it in the report.
 - Is your duckiebot able to track what you planned according to your plan? If not,
   then why?
+
