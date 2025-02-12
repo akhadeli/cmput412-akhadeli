@@ -8,7 +8,7 @@
 
 - **Topic**: Topics are a way to exchange messages between nodes by using a pubsub model. Publishers send messages to topics, while subscribers receive them, allowing for decoupled communication.
 
-- **Service**: A request/reply interaction mechanism between nodes. Unlike topics' continuous data flow, services are for operations needing specific responses, like querying sensor states.
+- **Service**: Services provide an alternative communication mechanism between nodes. Unlike the asynchronous nature of topics, services are for operations requiring a request-response interaction, like querying sensor states.
 
 - **Message**: Typed data structures for node communication. They support primitive types and nested structures, enabling both simple and complex data exchange.
 
@@ -35,21 +35,20 @@ The typical workflow for setting up node communication involves:
 
 - Why is there a difference between the actual and desired location?
 
-Most of the time the bot stops near exact distance (1.25m) but sometimes it goes way over it. 
-We suspect one reason for this is because of lag. 
-A discrepancy of the connection between the messages that the publisher is sending to the robot. 
+Most of the time the bot stops near exact distance (1.25m) but sometimes it goes way over it.
+We suspect one reason for this is because of lag.
+A discrepancy of the connection between the messages that the publisher is sending to the robot.
 The robot gets the shutdown signal late which includes WheelsCMDStamped(vel_left=0, vel_right=0).
 
-Another reason is the rate of messages publishing. 
-We observed that when the rate of message publishing is too low (E.g. 3 messages per second) it is more likely to overshoot. 
+Another reason is the rate of messages publishing.
+We observed that when the rate of message publishing is too low (E.g. 3 messages per second) it is more likely to overshoot.
 This is because the interval of message sending is large which allows for larger error.
 
 - What speed did you use?
 
-
 - What happens when you increase or decrease the speed?
 
-Increasing the speed leads to more accurate results in our case. 
+Increasing the speed leads to more accurate results in our case.
 This is likely because the mat used for the robot has been tampered a lot over 2 weeks as other students use it for their testing and a lot of accidental stepping on mat has happened.
 Decreasing the speed leads to less accurate results like for the same reason expressed previously.
 
@@ -61,7 +60,7 @@ Decreasing the speed leads to less accurate results like for the same reason exp
 One of the most pressing problems we faced in the rotation task is overshooting.
 After spending a long time tweaking our implementation, we achieved near exact 90 degree rotation in most of our runs.
 However, sometimes it overshoots and, rarely, its spins around more than 360 degrees.
-It mainly came from the lag and number of published messages per second. 
+It mainly came from the lag and number of published messages per second.
 There was nothing we can do about the former. For the latter, we set a tolerance threshold such that when the read that total change in angle of the robot frame is within that lower threshold we stop the robot.
 As well, we increased the number of published messages per second. This makes the interval of error really small so it only overshoots a little if we ever do and there is no lag.
 
@@ -75,7 +74,7 @@ As well, we increased the number of published messages per second. This makes th
 
 - Clearly document the mapping of states to LED colors in your report
 
-Red means the duckiebot is in a stopped state and Green means that the duckiebot is moving. 
+Red means the duckiebot is in a stopped state and Green means that the duckiebot is moving.
 When the node shuts down, we turn the lights off.
 
 - Include plot of the rosbag results
