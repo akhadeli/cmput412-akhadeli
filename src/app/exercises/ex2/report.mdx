@@ -24,7 +24,13 @@ The typical workflow for setting up node communication involves:
 4. Launching the respective nodes
 5. Additionally collect data using rosbag for playback and analysis
 
+The following images show my-publisher.py publishing messages and my-subscriber.py reading the published messages running from the duckiebot.
+
 ![Publisher and Subscriber](/cmput412-akhadeli/images/ex2/pub-sub-simple.png)
+
+Afterwards, we subscribed to the topic containing the output of the camera. 
+We then transformed the read image into grayscale and annotated it using OpenCV and published the compressed output on a custom topic.
+We opened rqt_image_view and used the outputs from the custom topic showing this screenshot.
 
 ![Annotated Image](/cmput412-akhadeli/images/ex2/annotated-image.png)
 
@@ -90,15 +96,16 @@ After we defined this in our DTROS subclasses, our nodes shutdown properly.
 ![Rotation Plot](/cmput412-akhadeli/images/ex2/rotation_plot.png)
 
 ### Part III: Playing with Duckiebots
-
-- Clearly document the mapping of states to LED colors in your report
+After building our main node and service nodes and hours of testing and tweaking their parameters, we achieved our best run on running the Duckiebot to traced a D path.
 
 <video
   src="/cmput412-akhadeli/images/ex2/d-path-compressed.mp4"
   controls
 ></video>
 
-**Red** means the duckiebot is in a **stopped state** and **Green** means that the duckiebot is **moving**.
+The main node is responsible for the logic of controlling the wheels of the duckiebot. 
+It also publishes a msg to /csc22909/state. The service node subscribes to this topic.
+There are three states Stopping, Moving, and Exiting. The service node handles the lights to output **Red** meaning the duckiebot is in a **stopped state** and **Green** means that the duckiebot is **moving**.
 When the node shuts down, we turn the lights off.
 
 - Include plot of the rosbag results
