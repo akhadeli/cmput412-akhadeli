@@ -14,16 +14,15 @@
 
 - **Bag**: A method to record messages sent through a topic. Since timestamps are attached to each message, it allows for the playback of the messages in the order they were sent, and thus analysis of the time-series data.
 
-#### Communication Workflow
+#### Typical workflow for communication
 
 The typical workflow for setting up node communication involves:
 
-1. Defining message/service structures
-2. Developing nodes with appropriate publishers/subscribers
-3. Organizing with clear naming conventions
-4. Running the ROS Master for node discovery
-5. Launching nodes with proper configurations
-6. Monitoring communication using ROS tools
+1. Creating your nodes
+2. Defining message schemas using the built-in message types
+3. Attaching publishers and subscribers to the appropriate topics
+4. Launching the respective nodes
+5. Additionally collect data using rosbag for playback and analysis
 
 - Add a screenshot of your first publisher and subscriber nodes in action.
 
