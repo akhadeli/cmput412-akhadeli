@@ -13,6 +13,7 @@ const withMDX = createMDX({
   // Add markdown plugins here, as desired
   options: {
     remarkPlugins: [["remark-gfm", {}] as Pluggable],
+    rehypePlugins: [["rehype-katex", {}] as Pluggable],
   },
 });
 

@@ -32,9 +32,13 @@ The typical workflow for setting up node communication involves:
 
 #### Straight line task
 
-- Why is there a difference between the actual and desired location?
+To achieve the straight line task, we set a target distance to travel, and using the tick and resolution
+information provided by the motor encoders, and the wheel radius, we can calculate the current distance travelled,
+and therefore terminate the event loop when the current distance travelled is within a tolerance threshold of the target distance.
 
 <video src="/cmput412-akhadeli/images/ex2/straight.mp4" controls></video>
+
+Here is a video of the robot driving in a straight line forwards and backwards.
 
 Most of the time the bot stops near exact distance (1.25m) but sometimes it goes way over it.
 We believe that there are a few reasons for this:
@@ -59,8 +63,14 @@ Decreasing the speed leads to less accurate results like for the same reason exp
 
 #### Rotation task
 
-- Did you observe any deviations in the rotation?
-- If deviations exist, what could be the cause?
+To achieve the rotation task, we set a target angle to rotate to, and using the tick and resolution
+information provided by the motor encoders, and the wheel radius, we can calculate the current angle of rotation,
+
+```math
+\Delta \theta = \frac{d_R - d_L}{2d_w}
+```
+
+and therefore terminate the event loop when the current angle of rotation is within a tolerance threshold of the target angle.
 
 <video src="/cmput412-akhadeli/images/ex2/rotation.mp4" controls></video>
 

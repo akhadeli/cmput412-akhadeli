@@ -1,5 +1,6 @@
 import Report from "./report.mdx";
 import { cn } from "@/lib/utils";
+import "katex/dist/katex.min.css";
 
 export default function Home() {
   return (
@@ -26,7 +27,8 @@ export default function Home() {
           "dark:prose-strong:text-gray-100",
           "prose-img:w-full prose-img:rounded-lg prose-img:border prose-img:border-border prose-img:dark:border-border",
           "prose-video:w-full prose-video:rounded-lg prose-video:border prose-video:border-border prose-video:dark:border-border",
-          "prose-iframe:w-full prose-iframe:rounded-lg prose-iframe:border prose-iframe:border-border prose-iframe:dark:border-border"
+          "prose-iframe:w-full prose-iframe:rounded-lg prose-iframe:border prose-iframe:border-border prose-iframe:dark:border-border",
+          "prose-span:text-gray-800 prose-span:dark:text-gray-100"
         )}
       >
         <Report />

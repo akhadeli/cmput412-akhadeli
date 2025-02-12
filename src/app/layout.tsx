@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased dark`}>
+      <body className={`${inter.className} antialiased`}>
         <SidebarProvider>
           <AppSidebar />
           <SidebarTrigger className="ml-3 mt-3" />
