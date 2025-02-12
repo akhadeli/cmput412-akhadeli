@@ -37,28 +37,22 @@ The typical workflow for setting up node communication involves:
 <video src="/cmput412-akhadeli/images/ex2/straight.mp4" controls></video>
 
 Most of the time the bot stops near exact distance (1.25m) but sometimes it goes way over it.
-We suspect one reason for this is because of lag.
-A discrepancy of the connection between the messages that the publisher is sending to the robot.
-The robot gets the shutdown signal late which includes:
+We believe that there are a few reasons for this:
+
+1. Lag in the connection between the messages that the publisher and subscriber communicate with, imparted due to the high refresh rate we forced the robot to run at.
+2. The uneven surface of the mat leads to drifting away from the desired path.
+3. Observer encoder inaccuracies when the robot is driving on the surface, likely due to the weight of the robot.
 
 ```
 WheelsCMDStamped(vel_left=0, vel_right=0)
 ```
 
-Another reason is the rate of messages publishing.
-We observed that when the rate of message publishing is too low (E.g. 3 messages per second) it is more likely to overshoot.
-This is because the interval of message sending is large which allows for larger error.
-
 Furthermore, the uneven surface of the mat leads to drift into one direction.
 
-- What speed did you use?
-
-The duckiebot is set to full throttle to compensate for the unevenness of the surface
-
-- What happens when you increase or decrease the speed?
+We found that setting the speed to full throttle is the best option to compensate for the unevenness of the surface, therefore we applied full throttle to the robot.
 
 Increasing the speed leads to more accurate results in our case.
-This is likely because the mat used for the robot has been tampered a lot over 2 weeks as other students use it for their testing and a lot of accidental stepping on mat has happened.
+This is likely because the mat used for the robot has been tampered a lot over 2 weeks as other students use it for their testing and a lot of accidental stepping on mat has happened, creating unevenness.
 Decreasing the speed leads to less accurate results like for the same reason expressed previously.
 
 ![Straight Plot](/cmput412-akhadeli/images/ex2/straight_plot.png)
