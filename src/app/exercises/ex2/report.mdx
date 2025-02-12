@@ -6,7 +6,7 @@
 
 - **Node**: An executable file within a ROS package. Each node should be built to perform specific tasks like controlling sensors or motors, and communicating with other nodes by publishing and subscribing to topics.
 
-- **Topic**: Topics are a way to exchange messages between nodes by using a pubsub model. Publishers send messages to topics, while subscribers receive them, allowing for decoupled communication.
+- **Topic**: Topics are a way to exchange mnessages betwee nodes by using a pubsub model. Publishers send messages to topics, while subscribers receive them, allowing for decoupled communication.
 
 - **Service**: Services provide an alternative communication mechanism between nodes. Unlike the asynchronous nature of topics, services are for operations requiring a request-response interaction, like querying sensor states.
 
@@ -43,7 +43,11 @@ Another reason is the rate of messages publishing.
 We observed that when the rate of message publishing is too low (E.g. 3 messages per second) it is more likely to overshoot.
 This is because the interval of message sending is large which allows for larger error.
 
+Furthermore, the uneven surface of the mat leads to drift into one direction.
+
 - What speed did you use?
+
+The duckiebot is set to full throttle to compensate for the unevenness of the surface
 
 - What happens when you increase or decrease the speed?
 
@@ -63,9 +67,15 @@ It mainly came from the lag and number of published messages per second.
 There was nothing we can do about the former. For the latter, we set a tolerance threshold such that when the read that total change in angle of the robot frame is within that lower threshold we stop the robot.
 As well, we increased the number of published messages per second. This makes the interval of error really small so it only overshoots a little if we ever do and there is no lag.
 
-- Does your program exit properly after you nish all the above tasks? Is it still running
+- Does your program exit properly after you finish all the above tasks? Is it still running
   even if you shut down the program? If this is the case, think about how to resolve this
   issue
+
+Our programs did not finish properly in the beginning. 
+When we shutdown our program for the first time, the robot's wheels kept spinning even though the run function already finished.
+We, however, quickly realized this after looking at the sample exercises (E.g. camera reader). 
+We defined an on_shutdown() callback to our node that publishes a command to the wheels of the robot that set the velocity of each wheel to 0.
+After we defined this in our DTROS subclasses, our nodes shutdown properly. 
 
 - Plot of the rosbag results
 
@@ -73,7 +83,7 @@ As well, we increased the number of published messages per second. This makes th
 
 - Clearly document the mapping of states to LED colors in your report
 
-Red means the duckiebot is in a stopped state and Green means that the duckiebot is moving.
+**Red** means the duckiebot is in a **stopped state** and **Green** means that the duckiebot is **moving**.
 When the node shuts down, we turn the lights off.
 
 - Include plot of the rosbag results
