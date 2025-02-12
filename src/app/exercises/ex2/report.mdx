@@ -38,41 +38,45 @@ We opened rqt_image_view and used the outputs from the custom topic showing this
 
 #### Straight line task
 
-- Why is there a difference between the actual and desired location?
+To achieve the straight line task, we set a target distance to travel, and using the tick and resolution
+information provided by the motor encoders, and the wheel radius, we can calculate the current distance travelled,
+and therefore terminate the event loop when the current distance travelled is within a tolerance threshold of the target distance.
 
 <video src="/cmput412-akhadeli/images/ex2/straight.mp4" controls></video>
 
+Here is a video of the robot driving in a straight line forwards and backwards.
+
 Most of the time the bot stops near exact distance (1.25m) but sometimes it goes way over it.
-We suspect one reason for this is because of lag.
-A discrepancy of the connection between the messages that the publisher is sending to the robot.
-The robot gets the shutdown signal late which includes:
+We believe that there are a few reasons for this:
+
+1. Lag in the connection between the messages that the publisher and subscriber communicate with, imparted due to the high refresh rate we forced the robot to run at.
+2. The uneven surface of the mat leads to drifting away from the desired path.
+3. Observer encoder inaccuracies when the robot is driving on the surface, likely due to the weight of the robot.
 
 ```
 WheelsCMDStamped(vel_left=0, vel_right=0)
 ```
 
-Another reason is the rate of messages publishing.
-We observed that when the rate of message publishing is too low (E.g. 3 messages per second) it is more likely to overshoot.
-This is because the interval of message sending is large which allows for larger error.
-
 Furthermore, the uneven surface of the mat leads to drift into one direction.
 
-- What speed did you use?
-
-The duckiebot is set to full throttle to compensate for the unevenness of the surface
-
-- What happens when you increase or decrease the speed?
+We found that setting the speed to full throttle is the best option to compensate for the unevenness of the surface, therefore we applied full throttle to the robot.
 
 Increasing the speed leads to more accurate results in our case.
-This is likely because the mat used for the robot has been tampered a lot over 2 weeks as other students use it for their testing and a lot of accidental stepping on mat has happened.
+This is likely because the mat used for the robot has been tampered a lot over 2 weeks as other students use it for their testing and a lot of accidental stepping on mat has happened, creating unevenness.
 Decreasing the speed leads to less accurate results like for the same reason expressed previously.
 
 ![Straight Plot](/cmput412-akhadeli/images/ex2/straight_plot.png)
 
 #### Rotation task
 
-- Did you observe any deviations in the rotation?
-- If deviations exist, what could be the cause?
+To achieve the rotation task, we set a target angle to rotate to, and using the tick and resolution
+information provided by the motor encoders, and the wheel radius, we can calculate the current angle of rotation,
+
+```math
+\Delta \theta = \frac{d_R - d_L}{2d_w}
+```
+
+and therefore terminate the event loop when the current angle of rotation is within a tolerance threshold of the target angle.
 
 <video src="/cmput412-akhadeli/images/ex2/rotation.mp4" controls></video>
 
