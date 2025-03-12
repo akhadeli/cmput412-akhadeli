@@ -31,6 +31,7 @@ const navItems = [
     items: [
       { title: "Exercise 1", url: "/exercises/ex1" },
       { title: "Exercise 2", url: "/exercises/ex2" },
+      { title: "Exercise 3", url: "/exercises/ex3" },
     ],
   },
 ];
