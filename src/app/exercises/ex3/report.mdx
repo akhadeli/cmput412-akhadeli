@@ -207,9 +207,15 @@ Each video shows the robot following a straight lane for at least 1.5 meters, de
 
 1. **P Controller**: The robot uses a simple proportional controller that adjusts turning based on the error between its current position and the desired lane position.
 
+- In the video we can see slight oscillations, but the robot is able to follow the lane.
+
 2. **PD Controller**: Building on the P controller, this adds a derivative term that considers how quickly the error is changing, helping to reduce oscillation.
 
+- In the video we can see a strong correction initially, and then smoother corrections for the oscillations.
+
 3. **PID Controller**: The most complex controller, adding an integral term to the PD controller to address systematic biases and reduce steady-state error.
+
+- In the video we can see a good balance between responsiveness and stability, with very minimal oscillations.
 
 ### Controller Analysis
 
