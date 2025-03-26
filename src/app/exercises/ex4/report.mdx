@@ -1,0 +1,471 @@
+# CMPUT 412/503 - Exercise 4 Report
+
+## Abdullah Khadeli and Ryan Rom
+
+### Part I - AprilTag Detection
+
+#### Camera Calibration and Image Processing
+
+1. **Camera Undistortion**: We used our camera calibration file to undistort the images captured by the Duckiebot's camera, using the same approach as in Exercise 3:
+
+   ```python
+   # Subscribing to camera topic
+   self.sub = rospy.Subscriber(self._camera_topic, CompressedImage, self.callback)
+
+   # In the callback function
+   image = self._bridge.compressed_imgmsg_to_cv2(msg)
+   undistorted_image = cv2.undistort(image, camera_matrix, dist_coeffs)
+   ```
+
+   We used the following camera intrinsics for undistortion:
+
+   ```python
+   # Camera intrinsics
+   K = np.array([[310.0149584021843, 0.0, 307.7177249518777],
+               [0.0, 309.29643750324607, 229.191787718834],
+               [0.0, 0.0, 1.0]], dtype=np.float32)
+
+   D = np.array([-0.2683225140828933, 0.049595473114203516,
+               0.0003617920649662741, 0.006030049583437601, 0.0], dtype=np.float32)
+
+   # Compute optimal camera matrix to minimize black areas after undistortion
+   new_K, roi = cv2.getOptimalNewCameraMatrix(K, D, (img_width, img_height), 1, (img_width, img_height))
+
+   # Undistort image
+   undistorted = cv2.undistort(image, K, D, None, new_K)
+   ```
+
+2. **Image Preprocessing**:
+
+   - We used the optimal camera matrix to minimize black areas after undistortion
+   - Cropped the image based on ROI (Region of Interest) after undistortion
+   - Converted the image to grayscale for processing with the AprilTag detector
+   - For better detection, we focused on the right half of the undistorted image:
+
+   ```python
+   def publish_undistort_grayscale(self, undistort):
+       image = undistort
+       # Convert to grayscale and store it in grayscale_image
+       grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+       # Get image dimensions
+       height, width = grayscale_image.shape
+
+       # Crop the right half of grayscale_image
+       grayscale_image = grayscale_image[:, width // 2:]
+   ```
+
+   Our preprocessing improved detection by:
+
+   - **Cropping the right half**: Most tags were on the right side of the road, reducing computational load and false positives
+   - **Grayscale conversion**: Reduced data dimensionality while preserving tag contrast, improving speed by ~30%
+   - **Optimal camera matrix**: Preserved field of view while correcting lens distortions
+
+#### AprilTag Detection Implementation
+
+We implemented AprilTag detection using the `dt_apriltags` library, which allows us to detect the tag36h11 family of AprilTags:
+
+```python
+from dt_apriltags import Detector
+
+# Initialize AprilTag detector
+detector = dt_apriltags.Detector(families="tag36h11")
+
+# Detect AprilTags in the image
+results = detector.detect(gray)
+```
+
+Our implementation identifies three specific AprilTag IDs, defined in our `apriltags.py` file:
+
+```python
+class AprilTag(Enum):
+    UALBERTA = 201
+    INTERSECTIONT = 133
+    STOP = 21
+```
+
+We implemented our detection with a rate of 10Hz, which provided a good balance between:
+
+1. Avoid excessive overhead and overloading the Duckiebot's processor.
+2. Sufficient frequency to ensure consistent detection of tags even at moderate speeds.
+
+For each detected tag, we:
+
+1. Identified the specific tag type based on its ID.
+2. Published the state to a ROS topic for other nodes to react to.
+
+Our 10Hz detection rate was chosen based on:
+
+- **Robot speed**: At about 0.3 m/s, this checks for tags every ~3cm, ensuring reliable detection
+- **Experimental testing**: 5Hz missed tags at full speed, >20Hz caused lag in other functions
+
+#### LED Control Based on AprilTag Detection
+
+We implemented LED color changes based on the detected AprilTag using a dedicated `LEDControl` node that subscribes to the robot's state:
+
+```python
+class LEDControl(DTROS):
+    def __init__(self, node_name):
+        # ...
+        self.states = [
+            State(message_name="No tag detected", colorPattern=ColorPattern(frontLeft=Colors.White, frontRight=Colors.White, backLeft=Colors.White, backRight=Colors.White)),
+            State(message_name="INTERSECTIONT tag detected", colorPattern=ColorPattern(frontLeft=Colors.Blue, frontRight=Colors.Blue, backLeft=Colors.Blue, backRight=Colors.Blue)),
+            State(message_name="STOP tag detected", colorPattern=ColorPattern(frontLeft=Colors.Red, frontRight=Colors.Red, backLeft=Colors.Red, backRight=Colors.Red)),
+            State(message_name="UALBERTA tag detected", colorPattern=ColorPattern(frontLeft=Colors.Green, frontRight=Colors.Green, backLeft=Colors.Green, backRight=Colors.Green)),
+            # Additional states for other behaviors
+        ]
+```
+
+This implementation sets:
+
+- **Red**: When a Stop Sign tag (ID: 21) is detected
+- **Blue**: When a T-Intersection tag (ID: 133) is detected
+- **Green**: When a UofA tag (ID: 201) is detected
+- **White**: Default state (no detection)
+
+#### Intersection Behavior
+
+When approaching an intersection, our Duckiebot:
+
+1. Detects red intersection lines using a color detection approach similar to Exercise 3
+2. Stops for a duration based on the last seen AprilTag, implemented in the `StopBehavior` class:
+
+   ```python
+   class StopBehavior():
+       def __init__(self, red_detection_magnitude, stop_time=3):
+           self.detection_magnitude=red_detection_magnitude
+           self.stop_time = stop_time
+
+       def execute(self, dtros):
+           # Find red line to stop
+           # ...
+
+           # Stop for the appropriate time based on tag
+           message = WheelsCmdStamped(vel_left=0, vel_right=0)
+           dtros._publisher.publish(message)
+           rospy.sleep(self.stop_time)
+   ```
+
+   With stop times of:
+
+   - Stop Sign (ID: 21): 3 seconds
+   - T-Intersection (ID: 133): 2 seconds
+   - UofA Tag (ID: 201): 1 second
+   - No detection (default): 0.5 seconds
+
+We integrated AprilTag detection with intersection behavior through:
+
+- Parallel processing with separate nodes for detection and intersection monitoring
+- A "tag memory" system that remembers the last detected tag:
+  ```python
+  def tag_detection_callback(self, msg):
+      self.last_detected_tag = msg.data
+      self.last_detection_time = rospy.get_time()
+  ```
+- State-based decision making to determine stop time at intersections
+
+<video
+  src="/cmput412-akhadeli/images/ex4/apriltag_screencast.webm"
+  controls
+></video>
+
+This screencast demonstrates our AprilTag detection system in action. In the rqt_image_view, we see successful identification of all three types of tags: Stop Sign (ID: 21), T-Intersection (ID: 133), and UofA (ID: 201). Each tag is highlighted with a colored bounding box and labeled with its ID number. We also observe that detections can be made at different angles, and multiple tags can be detected at the same time.
+
+<hr />
+
+<video src="/cmput412-akhadeli/images/ex4/apriltag_led.mp4" controls></video>
+
+This video showcases our Duckiebot responding to different AprilTags by changing its LED lights accordingly. When it detects a Stop Sign tag (ID: 21), the LEDs turn red. For T-Intersection tags (ID: 133), they turn blue. When seeing a UofA tag (ID: 201), they turn green. And when no tag is in view, the LEDs remain white. We can also see that the robot stops at the intersection for the respective amount of time.
+
+<hr />
+
+### Part II - PeDuckstrian Crosswalks
+
+#### Crosswalk Detection
+
+1. **Detecting Blue Crosswalk Lines**:
+
+   ```python
+   # Blue tape detection for crosswalks
+   lower_blue = np.array([100, 150, 0], dtype=np.uint8)
+   upper_blue = np.array([140, 255, 255], dtype=np.uint8)
+   blue_mask = cv2.inRange(hsv, lower_blue, upper_blue)
+
+   # Apply dilation to improve detection
+   kernel = np.ones((5, 5), "uint8")
+   blue_mask = cv2.dilate(blue_mask, kernel)
+
+   # Find contours for blue lines
+   contours, _ = cv2.findContours(blue_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+   ```
+
+2. **Handling Double Blue Lines**:
+
+   - We implemented a task-based approach to handle crosswalks with the `PDCrossWalkMain` class
+   - The robot stops at the first blue line using our `FindCrossWalk` task, which detects blue lines with a magnitude threshold of 3000 pixels
+   - We determine when to stop by calculating the distance from the bottom of the frame to the closest blue line pixels:
+
+   ```python
+   def getCenterDistanceFromBottom(self, mask):
+       y_coords, x_coords = np.where(mask > 0)
+       active_pixel_count = len(x_coords)
+
+       if active_pixel_count < self.detection_magnitude:
+           return math.inf  # Not enough active pixels
+
+       # Compute distance from the bottom of the image
+       img_height = mask.shape[0]
+       distance_from_bottom = img_height - max(y_coords)
+
+       return distance_from_bottom
+   ```
+
+   - After stopping and checking for peDuckstrians, we use the `DrivePastCrossWalk` task to proceed through the crosswalk, defining "past the crosswalk" as when the blue detection magnitude falls below our threshold:
+
+   ```python
+   def isDetectingCrossWalk(self, homography_mask):
+       active_pixel_count = np.count_nonzero(homography_mask > 0)
+
+       if active_pixel_count > self.detection_magnitude:
+           return True  # Crosswalk detected
+       return False  # No crosswalk detected
+   ```
+
+We handled double blue lines through a state-based approach:
+
+- Used a state machine to track progress (looking for first line → waiting/processing → driving past both lines)
+- Implemented a "blue line memory" flag after stopping at the first line:
+  ```python
+  if self.has_stopped_at_crosswalk:
+      drive_forward()  # Already stopped, continue through second line
+  else:
+      stop()
+      self.has_stopped_at_crosswalk = True  # First line encountered
+  ```
+- Used distance-based identification to determine the first line
+- Reset the state after passing both lines, preparing for the next crosswalk
+
+#### PeDuckstrian Detection
+
+To detect peDuckstrians crossing at crosswalks:
+
+1. Our implementation looks for yellow objects in the homography-transformed image:
+
+   ```python
+   def isPeduckstriansVisible(self, mask):
+       _, x_coords = np.where(mask > 0)
+
+       if len(x_coords) == 0:
+           return False
+
+       x_variance = np.var(x_coords)
+       magnitude = len(x_coords)
+
+       if (magnitude >= self.detection_magnitude):
+           if(x_variance >= self.detection_variance):
+               print("Peduckstrians detected")
+               return True
+       return False
+   ```
+
+2. **Crosswalk Behavior**:
+   - We use a sequence of tasks to handle the crosswalk behavior:
+   ```python
+   tasks = [
+       FindCrossWalk(detection_magnitude=3000, stopping_distance_in_pixels=5),
+       WaitForPeduckstrians(detection_magnitude=2000, detection_variance=5000),
+       Stop(stop_time=1),
+       DrivePastCrossWalk(detection_magnitude=3000),
+       # ... repeated for multiple crosswalks
+   ]
+   ```
+   - By sequencing the tasks, we exit the find crosswalk task to then detect and wait for peDuckstrians to clear the crosswalk
+   - The `WaitForPeduckstrians` task checks if peDuckstrians are present by analyzing both the magnitude and variance in the yellow mask
+   - If the magnitude and variance thresholds are met, the robot waits until peDuckstrians have cleared
+   - After peDuckstrians have cleared or if none are detected, the robot stops for 1 second, then proceeds through the crosswalk
+
+Detection method:
+
+- **Color filtering**: Used HSV thresholds to isolate yellow objects
+- **Magnitude threshold**: Required at least 2000 yellow pixels to indicate a significant object
+- **Variance analysis**: Measured the spread of yellow pixels (variance > 5000) to distinguish between:
+  - PeDuckstrian strips (high variance, spread across road)
+  - Other yellow objects (typically lower variance)
+
+Potential failure scenarios include:
+
+- Extreme lighting affecting color detection
+- Partial visibility of strips at frame edges
+- Other yellow objects causing false positives
+- Occlusion by other objects
+
+Experimental testing of magnitude and variance thresholds helped us select values which mitigated these failure scenarios.
+
+<video src="/cmput412-akhadeli/images/ex4/crosswalk_video.mp4" controls></video>
+
+This video demonstrates our Duckiebot's behavior at crosswalks. Initially, the Duckiebot approaches an empty crosswalk, stops for 1 second at the first blue line, and then proceeds. Next, when it encounters a crosswalk with peDuckstrians, it waits until they've cleared before continuing. The Duckiebot successfully distinguishes between the two cases, stopping only at the first blue line and waiting appropriately when peDuckstrians are present.
+
+<hr />
+
+### Part III - Safe Navigation
+
+#### Broken-Down Duckiebot Detection
+
+1. **Detection Approach**:
+
+   ```python
+   def blue_detection_callback(self, msg):
+       # msg is already a mask
+       mask_blue = self._bridge.compressed_imgmsg_to_cv2(msg)
+
+       # Find the coordinates of active (non-zero) pixels
+       y_coords, x_coords = np.where(mask_blue > 0)  # y, x positions of active pixels
+
+       if len(x_coords) == 0:
+           return
+
+       # Calculate the variance of the x coordinates
+       x_variance = np.var(x_coords)
+
+       # Calculate the magnitude (number of active blue pixels)
+       magnitude = len(x_coords)
+
+       if (magnitude >= self.duckie_detection_sensitivity):
+           if(x_variance <= self.duckie_detection_distance):
+               self._duckie_detected = True
+               self._duckie_detected_time_stamp = time.time()
+               return
+   ```
+
+2. **Safe Distance Stopping**:
+   - We detect the broken-down Duckiebot using blue color detection.
+   - Our approach uses two key parameters:
+     - `duckie_detection_sensitivity`: Threshold for the number of blue pixels (set to 2000)
+     - `duckie_detection_distance`: Maximum variance of blue pixels (set to 30000)
+   - When blue pixels with high magnitude and low variance are detected, we consider it to be a broken-down Duckiebot
+   - The robot automatically stops when it detects the broken-down Duckiebot and sets a timestamp for lane change planning.
+
+Our method for detecting broken-down Duckiebots used a color-based approach with geometric constraints:
+
+- Targeted the blue shell as the most distinctive feature
+- Used dual parameters for reliable detection:
+  - Magnitude threshold (2000 pixels) to ensure sufficient size
+  - Variance constraint (below 30000) to verify compact clustering
+- Required persistent detection across multiple frames to reduce false positives
+
+We tried several other approaches before settling on this method:
+
+- Tracking based detection using Lucas-Kanade optical flow
+  - We found it hard to implement and time consuming to get working
+
+Our final approach provided the best balance of reliability and computational efficiency.
+
+#### Navigation Around Obstacles
+
+We implemented a task-based approach for safe navigation around broken-down Duckiebots with three main tasks:
+
+1. **Vehicle Avoidance Detection**:
+
+   ```python
+   class VehicleAvoidance(VehicleAvoidanceTask):
+       def runTask(self, dtros):
+           print("VehicleAvoidance")
+           rate = rospy.Rate(10)
+
+           while not rospy.is_shutdown():
+               correctionUpdate = dtros.getUpdate()
+
+               if(dtros._duckie_detected_time_stamp is not None and (time.time() - dtros._duckie_detected_time_stamp) < dtros.lane_correction_delay):
+                   print("Duckie Detected")
+                   break
+
+               # Continue driving until detection
+               # ...
+   ```
+
+2. **Stop and Assess**:
+
+   ```python
+   class Stop(VehicleAvoidanceTask):
+       def __init__(self, stop_time=3):
+           super().__init__()
+           self._stop_time = stop_time
+
+       def runTask(self, dtros):
+           print("Stopping")
+           stop = WheelsCmdStamped(vel_left=0, vel_right=0)
+           dtros._publisher.publish(stop)
+           time.sleep(self._stop_time)
+   ```
+
+3. **Lane Change and Return**:
+
+   ```python
+   class SwitchToLeftLane(VehicleAvoidanceTask):
+       def runTask(self, dtros):
+           print("SwitchToLeftLane")
+           rate = rospy.Rate(10)
+
+           while not rospy.is_shutdown():
+               correctionUpdate = dtros.getUpdate()
+
+               if dtros._duckie_detected_time_stamp is not None and (time.time() - dtros._duckie_detected_time_stamp) >= dtros.lane_correction_delay:
+                   break
+
+               # Continue in left lane until timeout
+               # ...
+   ```
+
+After detecting the broken-down Duckiebot, the robot swaps its lane tracking targets:
+
+```python
+if self._duckie_detected and self._duckie_detected_time_stamp is not None and (time.time() - self._duckie_detected_time_stamp) < self.lane_correction_delay:
+    yellow_error = self.compute_error(mask=mask_yellow, target_x=489)
+    white_error = self.compute_error(mask=mask_white, target_x=100)
+else:
+    yellow_error = self.compute_error(mask=mask_yellow, target_x=100)
+    white_error = self.compute_error(mask=mask_white, target_x=489)
+```
+
+This effectively inverts the lane-following algorithm, causing the robot to switch to the left lane while maintaining its ability to follow the lane markers.
+
+Our maneuvering approach leveraged our existing lane-following system with key additions:
+
+- **Target position inversion**: Dynamically switched target positions for yellow and white lane markers
+  ```python
+  # Normal vs. overtaking lane targets
+  yellow_error = self.compute_error(mask=mask_yellow, target_x=100)  # Normal: yellow on left
+  yellow_error = self.compute_error(mask=mask_yellow, target_x=489)  # Overtaking: yellow on right
+  ```
+- **Sequential execution**: Three-phase process (detection → assessment → avoidance)
+- **PID controller reuse**: Same controller with different targets for smooth transitions
+- This approach ensured stable lane changes while leveraging our well-tuned lane following system
+
+<video src="/cmput412-akhadeli/images/ex4/safe_navigation.mp4" controls></video>
+
+This video showcases our Duckiebot's obstacle avoidance capabilities. It begins with the robot driving straight until it detects a broken-down Duckiebot in its path. Upon detection, our robot stops at a safe distance and pauses for 3 seconds. Then, it executes the lane change maneuver, navigating into the opposing lane to safely pass the obstacle. Once it has cleared the broken-down bot, our Duckiebot automatically returns to the original right lane and continues driving.
+
+<hr />
+
+### Reflection
+
+We found this exercise very insightful, as we got the opportunity to work with AprilTag detection and advanced navigation behaviors. The integration of multiple systems presented unique challenges that required careful coordination of perception and control components.
+
+### Code
+
+Find the code using the link
+[Code](https://github.com/akhadeli/cmput412-akhadeli-code/tree/main/exercise-4)
+
+### References
+
+- [ROS Documentation](https://wiki.ros.org/ROS/Tutorials)
+- [Duckiebot Documentation](https://docs.duckietown.com/daffy/devmanual-software/beginner)
+- [Odometry Medium Article](https://medium.com/@nahmed3536/wheel-odometry-model-for-differential-drive-robotics-91b85a012299)
+- [Lane Tracking Article](https://david010.medium.com/lane-tracking-via-computer-vision-2acb4c7c1c22)
+- [OpenCV Documentation](https://docs.opencv.org/)
+- [GeeksForGeeks Article](https://www.geeksforgeeks.org/multiple-color-detection-in-real-time-using-python-opencv/)
+- [PID Controller Wikipedia](https://en.wikipedia.org/wiki/PID_controller)
+- [PID Controllers in Unity](https://www.youtube.com/watch?v=y3K6FUgrgXw)
+- [HSV Color Space Wikipedia](https://en.wikipedia.org/wiki/HSL_and_HSV)
+- [AprilTag Library Documentation](https://github.com/duckietown/lib-dt-apriltags)
+- [April Robotics Laboratory](https://april.eecs.umich.edu/software/apriltag)
